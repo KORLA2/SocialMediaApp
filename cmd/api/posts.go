@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/KORLA2/SocialMedia/models"
 	"github.com/gin-gonic/gin"
@@ -13,7 +14,7 @@ type PostPayload struct {
 	Tags    []string `json:"tags"`
 }
 
-func (a *application) CreatePost(c *gin.Context) {
+func (a *application) CreatePostHandler(c *gin.Context) {
 
 	// ctx
 	ctx := c.Request.Context()
@@ -38,6 +39,26 @@ func (a *application) CreatePost(c *gin.Context) {
 	}
 	c.JSON(http.StatusCreated, gin.H{
 		"Sucess Post Created": post,
+	})
+
+}
+
+func (a *application) GetPostHandler(c *gin.Context) {
+
+	postIDstring := c.Param("postID")
+	postID, _ := strconv.Atoi(postIDstring)
+
+	ctx := c.Request.Context()
+	post, err := a.store.Posts.GetPostByID(ctx, postID)
+	if err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"Couldn't get post": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"PostFound": *post,
 	})
 
 }

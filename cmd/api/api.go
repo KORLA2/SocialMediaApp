@@ -35,7 +35,8 @@ func (app *application) mount() http.Handler {
 
 	group := router.Group("/api/v1")
 	group.GET("health", app.HealthCheck)
-	group.POST("posts", app.CreatePost)
+	group.POST("posts", app.CreatePostHandler)
+	group.GET("posts/:postID", app.GetPostHandler)
 
 	return router
 }
