@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -15,6 +16,7 @@ func main() {
 	godotenv.Load(".env")
 	cfg := config{
 		addr: env.GetString("ADDR", ":8008"),
+
 		db: dbConfig{
 			addr:         env.GetString("DB_ADDR", "postgres://user:password@localhost:5433/social?sslmode=disable"),
 			maxOpenConns: env.GetInt("MAX_CONNS", 25),
@@ -22,6 +24,9 @@ func main() {
 			maxIdleTime:  env.GetString("MAX_IDLE_TIME", (20 * time.Minute).String()),
 		},
 	}
+
+	fmt.Println("Listening on port", cfg.addr)
+
 	db, err := db.New(cfg.db.addr, cfg.db.maxOpenConns, cfg.db.maxIdleConns, cfg.db.maxIdleTime)
 
 	if err != nil {

@@ -33,7 +33,9 @@ func (app *application) mount() http.Handler {
 	router.Use(gin.Recovery())
 	router.Use(RequestTimeOut(30 * time.Second))
 
-	router.GET("/v1/health", app.HealthCheck)
+	group := router.Group("/api/v1")
+	group.GET("health", app.HealthCheck)
+	group.POST("posts", app.CreatePost)
 
 	return router
 }
