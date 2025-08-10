@@ -31,7 +31,7 @@ func (app *application) mount() http.Handler {
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
-	router.Use(TimeoutMiddleware(30 * time.Second))
+	router.Use(RequestTimeOut(30 * time.Second))
 
 	router.GET("/v1/health", app.HealthCheck)
 
@@ -51,7 +51,7 @@ func (app *application) Run(mux http.Handler) error {
 
 }
 
-func TimeoutMiddleware(time time.Duration) gin.HandlerFunc {
+func RequestTimeOut(time time.Duration) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		ctx, cancel := context.WithTimeout(c.Request.Context(), time)
