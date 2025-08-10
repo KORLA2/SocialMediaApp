@@ -6,11 +6,12 @@ import (
 
 	"github.com/KORLA2/SocialMedia/models"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
-
+var validate = validator.New()
 type PostPayload struct {
-	Title   string   `json:"title"`
-	Content string   `json:"content"`
+	Title   string   `json:"title" validate:"required,max=100"`
+	Content string   `json:"content" validate:"required, max=1000"`
 	Tags    []string `json:"tags"`
 }
 
@@ -20,10 +21,15 @@ func (a *application) CreatePostHandler(c *gin.Context) {
 	ctx := c.Request.Context()
 	var payload PostPayload
 
+
 	if err := c.BindJSON(&payload); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"Cannot Bind JSON": err.Error(),
-		})
+		a.BadRequest(c, "cannotBind Json", err)
+		return;
+	}
+
+	if err:= validate.Struct(payload); err != nil {
+		a.BadRequest(c, "Validation Failed", err)
+			return;
 	}
 	post := models.Post{
 		Title:   payload.Title,
@@ -33,13 +39,10 @@ func (a *application) CreatePostHandler(c *gin.Context) {
 	}
 
 	if err := a.store.Posts.Create(ctx, &post); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		a.InternalServerError(c, "Cannot Create Post", err)
+
 	}
-	c.JSON(http.StatusCreated, gin.H{
-		"Sucess Post Created": post,
-	})
+	a.Success(c, "Post Created Successfully", post, http.StatusCreated)
 
 }
 
@@ -52,13 +55,10 @@ func (a *application) GetPostHandler(c *gin.Context) {
 	post, err := a.store.Posts.GetPostByID(ctx, postID)
 	if err != nil {
 
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"Couldn't get post": err.Error(),
-		})
+		a.InternalServerError(c, "Couldn't get post", err)
+
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"PostFound": *post,
-	})
+	a.Success(c, "Post Fetched Successfully", *post, http.StatusOK)
 
 }
