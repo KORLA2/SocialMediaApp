@@ -8,7 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
+
 var validate = validator.New()
+
 type PostPayload struct {
 	Title   string   `json:"title" validate:"required,max=100"`
 	Content string   `json:"content" validate:"required, max=1000"`
@@ -21,15 +23,14 @@ func (a *application) CreatePostHandler(c *gin.Context) {
 	ctx := c.Request.Context()
 	var payload PostPayload
 
-
 	if err := c.BindJSON(&payload); err != nil {
 		a.BadRequest(c, "cannotBind Json", err)
-		return;
+		return
 	}
 
-	if err:= validate.Struct(payload); err != nil {
+	if err := validate.Struct(payload); err != nil {
 		a.BadRequest(c, "Validation Failed", err)
-			return;
+		return
 	}
 	post := models.Post{
 		Title:   payload.Title,
@@ -59,6 +60,15 @@ func (a *application) GetPostHandler(c *gin.Context) {
 
 		return
 	}
+
+	comments, err := a.store.Comments.GetCommentsByPostID(ctx, postID)
+	if err != nil {
+		a.InternalServerError(c, "Couldn't get comments for this post", err)
+
+		return
+	}
+	(*post).Comments = comments
+
 	a.Success(c, "Post Fetched Successfully", *post, http.StatusOK)
 
 }

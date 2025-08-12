@@ -10,6 +10,7 @@ type Post struct {
 	Tags      []string  `json:"tags"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	Comments  []Comment `json:"comments"`
 }
 
 type User struct {
@@ -18,4 +19,13 @@ type User struct {
 	Username  string    `json:"username"`
 	Password  string    `json:"-"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type Comment struct {
+	ID        int       `json:"id"`
+	PostID    int       `json:"post_id"`
+	Content   string    `json:"content"`
+	UserID    int       `json:"user_id"`
+	CreatedAt time.Time `json:"created_at"`
+	User      User
 }

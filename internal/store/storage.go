@@ -10,16 +10,20 @@ import (
 type Storage struct {
 	Posts interface {
 		Create(context.Context, *models.Post) error
-		GetPostByID(context.Context, int)(*models.Post, error)
+		GetPostByID(context.Context, int) (*models.Post, error)
 	}
 	Users interface {
 		Create(context.Context, *models.User) error
+	}
+	Comments interface {
+		GetCommentsByPostID(context.Context, int) ([]models.Comment, error)
 	}
 }
 
 func NewStorage(db *sql.DB) *Storage {
 	return &Storage{
-		Posts: &PostsStore{db},
-		Users: &UsersStore{db},
+		Posts:    &PostsStore{db},
+		Users:    &UsersStore{db},
+		Comments: &CommentsStore{db},
 	}
 }
