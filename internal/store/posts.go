@@ -15,9 +15,7 @@ type PostsStore struct {
 func (s *PostsStore) Create(ctx context.Context, post *models.Post) error {
 
 	query := `INSERT INTO posts (content,user_id,title,tags) 
-         VALUES ($1,$2,$3,$4) RETURNING id,created_at,updated_at
-
-`
+         VALUES ($1,$2,$3,$4) RETURNING id,created_at,updated_at `
 
 	if err := s.db.QueryRowContext(
 		ctx,
@@ -52,8 +50,39 @@ func (s *PostsStore) GetPostByID(ctx context.Context, postID int) (*models.Post,
 		&post.CreatedAt,
 		&post.UpdatedAt,
 	); err != nil {
+
 		return nil, err
 	}
 	return &post, nil
 
+}
+
+func (s *PostsStore) DeletePostByID(ctx context.Context, postID int) error {
+
+	query := `
+	DELETE FROM posts WHERE id=$1
+	`
+	res, err := s.db.ExecContext(ctx, query, postID)
+
+	if err != nil {
+		return err
+	}
+	if rowsAffected, _ := res.RowsAffected(); rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+func (s *PostsStore) UpdatePostByID(ctx context.Context, post *models.Post) error {
+
+	query := `
+	Update posts set content=$1, title=$2 WHERE id=$3
+	`
+
+	if _, err := s.db.ExecContext(ctx, query, post.Content, post.Title, post.ID); err != nil {
+
+		return err
+	}
+
+	return nil
 }

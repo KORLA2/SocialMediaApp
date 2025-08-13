@@ -36,7 +36,12 @@ func (app *application) mount() http.Handler {
 	group := router.Group("/api/v1")
 	group.GET("health", app.HealthCheck)
 	group.POST("posts", app.CreatePostHandler)
-	group.GET("posts/:postID", app.GetPostHandler)
+	group.POST("/comments", app.CreateCommentHandler)
+	middlewareGroup := group.Group("/posts/:postID")
+	middlewareGroup.Use(app.PostsContextMiddleware)
+	middlewareGroup.GET("/", app.GetPostHandler)
+	middlewareGroup.DELETE("/", app.DeletePostHandler)
+	middlewareGroup.PATCH("/", app.UpdatePostHandler)
 
 	return router
 }
