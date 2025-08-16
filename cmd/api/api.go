@@ -36,12 +36,19 @@ func (app *application) mount() http.Handler {
 	group := router.Group("/api/v1")
 	group.GET("health", app.HealthCheck)
 	group.POST("posts", app.CreatePostHandler)
-	group.POST("/comments", app.CreateCommentHandler)
-	middlewareGroup := group.Group("/posts/:postID")
-	middlewareGroup.Use(app.PostsContextMiddleware)
-	middlewareGroup.GET("/", app.GetPostHandler)
-	middlewareGroup.DELETE("/", app.DeletePostHandler)
-	middlewareGroup.PATCH("/", app.UpdatePostHandler)
+	group.POST("comments", app.CreateCommentHandler)
+
+	middlewareUserGroup := group.Group("/user/:userID")
+	middlewareUserGroup.Use(app.UsersContextMiddleWare)
+	middlewareUserGroup.POST("/", app.CreateUserHandler)
+	middlewareUserGroup.GET("/", app.GetUserHandler)
+	middlewareUserGroup.PUT("follow", app.FollowUserHandler)
+	middlewareUserGroup.PUT("unfollow", app.UnfollowUserHandler)
+	middlewarePostGroup := group.Group("/posts/:postID")
+	middlewarePostGroup.Use(app.PostsContextMiddleware)
+	middlewarePostGroup.GET("/", app.GetPostHandler)
+	middlewarePostGroup.DELETE("/", app.DeletePostHandler)
+	middlewarePostGroup.PATCH("/", app.UpdatePostHandler)
 
 	return router
 }

@@ -29,3 +29,9 @@ type Comment struct {
 	CreatedAt time.Time `json:"created_at"`
 	User      User
 }
+
+type Follower struct {
+	UserID     int       `json:"userid"`
+	FollowerID int       `json:"followerid"`
+	CreatedAt  time.Time `json:"created_at"`
+}

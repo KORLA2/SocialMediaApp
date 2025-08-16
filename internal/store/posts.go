@@ -76,10 +76,11 @@ func (s *PostsStore) DeletePostByID(ctx context.Context, postID int) error {
 func (s *PostsStore) UpdatePostByID(ctx context.Context, post *models.Post) error {
 
 	query := `
-	Update posts set content=$1, title=$2 WHERE id=$3
+	Update posts set content=$1, title=$2, updated_at=NOW() WHERE id=$3 RETURNING updated_at
 	`
 
-	if _, err := s.db.ExecContext(ctx, query, post.Content, post.Title, post.ID); err != nil {
+	err := s.db.QueryRowContext(ctx, query, post.Content, post.Title, post.ID).Scan(&post.UpdatedAt)
+	if err != nil {
 
 		return err
 	}

@@ -28,3 +28,19 @@ func (u *UsersStore) Create(ctx context.Context, User *models.User) error {
 
 	return nil
 }
+
+func (u *UsersStore) GetUserByID(ctx context.Context, userID int) (*models.User, error) {
+
+	query := ` Select id, email,user_name,password,created_at from users
+	where id=$1
+	`
+	var user models.User
+
+	if err := u.db.QueryRowContext(ctx, query, userID).
+		Scan(&user.ID, &user.Email, &user.Username, &user.Password, &user.CreatedAt); err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+
+}

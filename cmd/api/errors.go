@@ -7,14 +7,14 @@ import (
 )
 
 func (a *application) InternalServerError(c *gin.Context, errormessage string, err error) {
-	c.AbortWithStatusJSON(500, gin.H{errormessage: err.Error()})
+	c.AbortWithStatusJSON(500, gin.H{"data": err.Error()})
 
 }
 func (a *application) Success(c *gin.Context, Successmessage string, success any, Status int) {
-	c.JSON(Status, gin.H{Successmessage: success})
+	c.JSON(Status, gin.H{"data": success})
 
 }
 func (a *application) BadRequest(c *gin.Context, errormessage string, err error) {
-	c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{errormessage: err.Error()})
+	c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"data": err.Error()})
 
 }
