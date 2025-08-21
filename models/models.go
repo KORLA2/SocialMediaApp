@@ -11,6 +11,12 @@ type Post struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Comments  []Comment `json:"comments"`
+	User      User
+}
+
+type UserFeed struct {
+	Post
+	Comments_Count int `json:"comments_count"`
 }
 
 type User struct {

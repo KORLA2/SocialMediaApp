@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,6 +26,11 @@ func (a *application) FollowUserHandler(c *gin.Context) {
 		a.BadRequest(c, "Cannot Bind Followers json", err)
 		return
 	}
+	if payload.UserID == followerUser.ID {
+		a.BadRequest(c, "Cannot Do this", fmt.Errorf("You cannot follow yoursef"))
+		return
+	}
+
 	if err := a.store.Followers.Create(ctx, followerUser.ID, payload.UserID); err != nil {
 		a.InternalServerError(c, "Cannot Create a Follow Request", err)
 		return

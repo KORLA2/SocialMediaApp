@@ -12,6 +12,52 @@ type PostsStore struct {
 	db *sql.DB
 }
 
+func (s *PostsStore) Feed(ctx context.Context, userID int) ([]models.UserFeed, error) {
+
+	query := `
+select p.id as post_id,u.user_name,p.user_id,p.title,p.content,p.tags,p.created_at, count(c.id) as comments_count
+
+from posts p 
+
+left join comments c on c.post_id=p.id 
+
+left join followers f on p.user_id=f.follower_id and  f.user_id=$1
+join users u on p.user_id=u.id
+where p.user_id = $1 or f.follower_id is not null
+group by p.id,u.user_name
+
+order by p.created_at desc 
+`
+
+	rows, err := s.db.QueryContext(ctx, query, userID)
+
+	if err != nil {
+		return nil, err
+	}
+	var feed []models.UserFeed
+	for rows.Next() {
+
+		var u models.UserFeed
+		u.User = models.User{}
+		if err := rows.Scan(
+			&u.ID,
+			&u.User.Username,
+			&u.User.ID,
+			&u.Title,
+			&u.Content,
+			pq.Array(&u.Tags),
+			&u.CreatedAt,
+			&u.Comments_Count,
+		); err != nil {
+			return nil, err
+		}
+		feed = append(feed, u)
+
+	}
+	return feed, nil
+
+}
+
 func (s *PostsStore) Create(ctx context.Context, post *models.Post) error {
 
 	query := `INSERT INTO posts (content,user_id,title,tags) 

@@ -44,6 +44,9 @@ func (app *application) mount() http.Handler {
 	middlewareUserGroup.GET("/", app.GetUserHandler)
 	middlewareUserGroup.PUT("follow", app.FollowUserHandler)
 	middlewareUserGroup.PUT("unfollow", app.UnfollowUserHandler)
+
+	group.GET("/user/feed", app.GetUserFeedHandler)
+
 	middlewarePostGroup := group.Group("/posts/:postID")
 	middlewarePostGroup.Use(app.PostsContextMiddleware)
 	middlewarePostGroup.GET("/", app.GetPostHandler)
