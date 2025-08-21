@@ -12,7 +12,7 @@ type PostsStore struct {
 	db *sql.DB
 }
 
-func (s *PostsStore) Feed(ctx context.Context, userID int) ([]models.UserFeed, error) {
+func (s *PostsStore) Feed(ctx context.Context, userID int, fq PaginatedQuery) ([]models.UserFeed, error) {
 
 	query := `
 select p.id as post_id,u.user_name,p.user_id,p.title,p.content,p.tags,p.created_at, count(c.id) as comments_count
@@ -26,10 +26,12 @@ join users u on p.user_id=u.id
 where p.user_id = $1 or f.follower_id is not null
 group by p.id,u.user_name
 
-order by p.created_at desc 
+order by p.created_at ` + fq.Sort + `
+LIMIT $2
+OFFSET $3
 `
 
-	rows, err := s.db.QueryContext(ctx, query, userID)
+	rows, err := s.db.QueryContext(ctx, query, userID, fq.Limit, fq.Offset)
 
 	if err != nil {
 		return nil, err

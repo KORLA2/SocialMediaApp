@@ -13,7 +13,7 @@ type Storage struct {
 		GetPostByID(context.Context, int) (*models.Post, error)
 		DeletePostByID(context.Context, int) error
 		UpdatePostByID(context.Context, *models.Post) error
-		Feed(context.Context, int) ([]models.UserFeed, error)
+		Feed(context.Context, int, PaginatedQuery) ([]models.UserFeed, error)
 	}
 	Users interface {
 		Create(context.Context, *models.User) error
