@@ -17,6 +17,7 @@ type Post struct {
 type UserFeed struct {
 	Post
 	Comments_Count int `json:"comments_count"`
+	PostScore      int `json:"post_score"`
 }
 
 type User struct {

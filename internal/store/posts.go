@@ -15,23 +15,30 @@ type PostsStore struct {
 func (s *PostsStore) Feed(ctx context.Context, userID int, fq PaginatedQuery) ([]models.UserFeed, error) {
 
 	query := `
-select p.id as post_id,u.user_name,p.user_id,p.title,p.content,p.tags,p.created_at, count(c.id) as comments_count
+		select p.id as post_id,u.user_name,p.user_id,p.title,p.content,p.tags,p.created_at, count(c.id) as comments_count,
+		
+            (CASE WHEN p.title ILIKE '%' || $4 || '%' THEN 1 ELSE 0 END) +
+            (CASE WHEN p.content ILIKE '%' || $4 || '%' THEN 1 ELSE 0 END) +
+            (SELECT COUNT(*) 
+             FROM unnest(p.tags)  t
+             WHERE t ILIKE '%' || $4 || '%')
+       
+                AS match_score
 
-from posts p 
+		from posts p 
 
-left join comments c on c.post_id=p.id 
+		left join comments c on c.post_id=p.id 
 
-left join followers f on p.user_id=f.follower_id and  f.user_id=$1
-join users u on p.user_id=u.id
-where p.user_id = $1 or f.follower_id is not null
-group by p.id,u.user_name
-
-order by p.created_at ` + fq.Sort + `
-LIMIT $2
-OFFSET $3
+		left join followers f on p.user_id=f.follower_id and  f.user_id=$1
+		join users u on p.user_id=u.id
+		where (p.user_id = $1 or f.follower_id is not null) 
+		group by p.id,u.user_name
+		order by match_score desc,p.created_at ` + fq.Sort + `
+		LIMIT $2
+		OFFSET $3
 `
 
-	rows, err := s.db.QueryContext(ctx, query, userID, fq.Limit, fq.Offset)
+	rows, err := s.db.QueryContext(ctx, query, userID, fq.Limit, fq.Offset, fq.Search)
 
 	if err != nil {
 		return nil, err
@@ -50,6 +57,7 @@ OFFSET $3
 			pq.Array(&u.Tags),
 			&u.CreatedAt,
 			&u.Comments_Count,
+			&u.PostScore,
 		); err != nil {
 			return nil, err
 		}
