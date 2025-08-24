@@ -13,10 +13,22 @@ import (
 
 func main() {
 
+	// @BasePath /api/v1
+
+	// PingExample godoc
+	// @Summary ping example
+	// @Schemes
+	// @Title do ping
+	// @Tags example
+	// @Accept json
+	// @Produce json
+	// @Success 200 {string} Helloworld
+	// @Router /api/v1/helloworld [get]
+
 	godotenv.Load(".env")
 	cfg := config{
 		addr: env.GetString("ADDR", ":8008"),
-
+		mail: mailConfig{expiry: time.Hour* 24 * 3},
 		db: dbConfig{
 			addr:         env.GetString("DB_ADDR", "postgres://user:password@localhost:5433/social?sslmode=disable"),
 			maxOpenConns: env.GetInt("MAX_CONNS", 25),

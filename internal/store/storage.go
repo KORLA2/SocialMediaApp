@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/KORLA2/SocialMedia/models"
 )
@@ -16,7 +17,8 @@ type Storage struct {
 		Feed(context.Context, int, PaginatedQuery) ([]models.UserFeed, error)
 	}
 	Users interface {
-		Create(context.Context, *models.User) error
+		Create(context.Context, *sql.Tx, *models.User) error
+		CreateAndInvite(context.Context, *models.User, string, time.Duration) error
 		GetUserByID(context.Context, int) (*models.User, error)
 	}
 	Comments interface {
@@ -37,4 +39,20 @@ func NewStorage(db *sql.DB) *Storage {
 		Followers: &FollowStore{db},
 	}
 
+}
+
+func withTx(db *sql.DB, ctx context.Context, user *models.User, fn func(*sql.Tx) error) error {
+
+	tx, err := db.BeginTx(ctx, nil)
+
+	if err != nil {
+		return err
+	}
+
+	if err := fn(tx); err != nil {
+		_ = tx.Rollback() // RollBack
+		return err
+	}
+
+	return nil
 }

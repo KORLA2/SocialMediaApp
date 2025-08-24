@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/KORLA2/SocialMedia/models"
 )
@@ -11,12 +12,12 @@ type UsersStore struct {
 	db *sql.DB
 }
 
-func (u *UsersStore) Create(ctx context.Context, User *models.User) error {
+func (u *UsersStore) Create(ctx context.Context, tx *sql.Tx, User *models.User) error {
 
 	query := `INSERT INTO users (email,username,password) 
 	VALUES ($1,$2,$3) RETURNING id,created_at `
 
-	if err := u.db.QueryRowContext(
+	if err := tx.QueryRowContext(
 		ctx,
 		query,
 		User.Email,
@@ -43,4 +44,35 @@ func (u *UsersStore) GetUserByID(ctx context.Context, userID int) (*models.User,
 
 	return &user, nil
 
+}
+
+func (u *UsersStore) CreateAndInvite(ctx context.Context, user *models.User,
+	token string, invitationExp time.Duration) error {
+
+	return withTx(u.db, ctx, user, func(tx *sql.Tx) error {
+
+		if err := u.Create(ctx, tx, user); err != nil {
+
+			return err // RollBack;
+		}
+
+		if err := u.CreateUserInvite(ctx, tx, user.ID, token, invitationExp); err != nil {
+			return err
+		}
+		return nil
+	})
+
+}
+
+func (u *UsersStore) CreateUserInvite(ctx context.Context, tx *sql.Tx, userID int, token string, invitationExp time.Duration) error {
+
+	query := `Insert into user_invitations (user_id,token,expiry) values($1,$2,$3)`
+
+	_, err := tx.ExecContext(ctx, query, userID, token, time.Now().Add(invitationExp))
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

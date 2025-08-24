@@ -5,8 +5,12 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/KORLA2/SocialMedia/cmd/docs"
 	"github.com/KORLA2/SocialMedia/internal/store"
 	"github.com/gin-gonic/gin"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	
 )
 
 type application struct {
@@ -17,6 +21,11 @@ type application struct {
 type config struct {
 	addr string
 	db   dbConfig
+  mail  mailConfig
+}
+
+type mailConfig struct{
+	expiry  time.Duration
 }
 
 type dbConfig struct {
@@ -34,16 +43,23 @@ func (app *application) mount() http.Handler {
 	router.Use(RequestTimeOut(30 * time.Second))
 
 	group := router.Group("/api/v1")
+	group.GET("swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler,
+		ginSwagger.URL("http://localhost:8080/swagger/doc.json"),
+		ginSwagger.DefaultModelsExpandDepth(-1)))
+
 	group.GET("health", app.HealthCheck)
 	group.POST("posts", app.CreatePostHandler)
 	group.POST("comments", app.CreateCommentHandler)
 
 	middlewareUserGroup := group.Group("/user/:userID")
 	middlewareUserGroup.Use(app.UsersContextMiddleWare)
-	middlewareUserGroup.POST("/", app.CreateUserHandler)
 	middlewareUserGroup.GET("/", app.GetUserHandler)
 	middlewareUserGroup.PUT("follow", app.FollowUserHandler)
 	middlewareUserGroup.PUT("unfollow", app.UnfollowUserHandler)
+   
+	   middlewareAuthGroup:=group.Group("/authenticate")
+
+	    middlewareAuthGroup.POST("user",app.RegisterUserHandler);
 
 	group.GET("/user/feed", app.GetUserFeedHandler)
 
@@ -57,7 +73,7 @@ func (app *application) mount() http.Handler {
 }
 
 func (app *application) Run(mux http.Handler) error {
-
+	docs.SwaggerInfo.BasePath = "/api/v1"
 	server := &http.Server{
 		Addr:         app.config.addr,
 		Handler:      mux,
