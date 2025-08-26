@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	
 )
 
 type application struct {
@@ -21,11 +20,11 @@ type application struct {
 type config struct {
 	addr string
 	db   dbConfig
-  mail  mailConfig
+	mail mailConfig
 }
 
-type mailConfig struct{
-	expiry  time.Duration
+type mailConfig struct {
+	expiry time.Duration
 }
 
 type dbConfig struct {
@@ -56,11 +55,12 @@ func (app *application) mount() http.Handler {
 	middlewareUserGroup.GET("/", app.GetUserHandler)
 	middlewareUserGroup.PUT("follow", app.FollowUserHandler)
 	middlewareUserGroup.PUT("unfollow", app.UnfollowUserHandler)
-   
-	   middlewareAuthGroup:=group.Group("/authenticate")
 
-	    middlewareAuthGroup.POST("user",app.RegisterUserHandler);
+	middlewareAuthGroup := group.Group("/authenticate/user")
 
+	middlewareAuthGroup.POST("/", app.RegisterUserHandler)
+
+	middlewareAuthGroup.PUT("activate/:token", app.ActivateUserHandler)
 	group.GET("/user/feed", app.GetUserFeedHandler)
 
 	middlewarePostGroup := group.Group("/posts/:postID")

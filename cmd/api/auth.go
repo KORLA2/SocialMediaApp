@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"log"
 	"net/http"
 
 	"github.com/KORLA2/SocialMedia/models"
@@ -41,15 +42,17 @@ func (a *application) RegisterUserHandler(c *gin.Context) {
 
 	payload.Password = HashPassword(payload.Password)
 
-	token := uuid.New().String();
-	hash:=sha256.Sum256([]byte(token));
-	hashToken:=hex.EncodeToString(hash[:])
+	token := uuid.New().String()
+	hash := sha256.Sum256([]byte(token))
+	hashToken := hex.EncodeToString(hash[:])
+	log.Println(hashToken)
 
 	User := models.User{
 
 		Email:    payload.Email,
 		Username: payload.Username,
 		Password: payload.Password,
+		Token:    token,
 	}
 	if err := a.store.Users.CreateAndInvite(ctx, &User, hashToken, a.config.mail.expiry); err != nil {
 		a.BadRequest(c, "Cannot Create User", err)
@@ -57,5 +60,16 @@ func (a *application) RegisterUserHandler(c *gin.Context) {
 	}
 
 	a.Success(c, "Created User Successfully", User, http.StatusOK)
+
+}
+func (a *application) ActivateUserHandler(c *gin.Context) {
+
+	ctx := c.Request.Context()
+
+	token := c.Param("token")
+	log.Print(token)
+	if err := a.store.Users.Activate(ctx, token); err != nil {
+		a.BadRequest(c, "token error", err)
+	}
 
 }

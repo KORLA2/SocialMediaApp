@@ -26,6 +26,8 @@ type User struct {
 	Username  string    `json:"username"`
 	Password  string    `json:"-"`
 	CreatedAt time.Time `json:"created_at"`
+	IsActive  bool      `json:"is_active"`
+	Token     string    `json:"token"`
 }
 
 type Comment struct {
