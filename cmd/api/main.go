@@ -32,7 +32,7 @@ func main() {
 		mail: mailConfig{
 			expiry: time.Hour * 24 * 3,
 			sendgrid: SendGridConfig{
-				API_KEY: env.GetString("API_KEY", "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"),
+				API_KEY: env.GetString("API_KEY", "abc"),
 			},
 			FromEmail: env.GetString("FROM_MAIL", "palclub@io.com"),
 		},
