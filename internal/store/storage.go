@@ -20,6 +20,7 @@ type Storage struct {
 		CreateAndInvite(context.Context, *models.User, string, time.Duration) error
 		GetUserByID(context.Context, int) (*models.User, error)
 		Activate(context.Context,string)(error)
+		Delete(context.Context,int)(error)
 	}
 	Comments interface {
 		GetCommentsByPostID(context.Context, int) ([]models.Comment, error)

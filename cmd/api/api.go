@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/KORLA2/SocialMedia/cmd/docs"
+	"github.com/KORLA2/SocialMedia/internal/mailer"
 	"github.com/KORLA2/SocialMedia/internal/store"
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
@@ -15,16 +16,24 @@ import (
 type application struct {
 	config config
 	store  *store.Storage
+	mailer  mailer.Client
 }
 
 type config struct {
 	addr string
 	db   dbConfig
+	Frontend_URL string
 	mail mailConfig
 }
 
 type mailConfig struct {
+	sendgrid SendGridConfig
+	FromEmail string
 	expiry time.Duration
+}
+
+type SendGridConfig struct{
+	API_KEY string
 }
 
 type dbConfig struct {

@@ -146,3 +146,37 @@ func (u *UsersStore) createUserInvite(ctx context.Context, tx *sql.Tx, userID in
 
 	return nil
 }
+
+
+func (u*UsersStore)Delete(ctx context.Context,userID int)error{
+
+return withTx(u.db,ctx,func(tx *sql.Tx) error {
+
+// Delete User and Invitation
+
+     if err:= u.deleteUser(ctx,tx,userID);err!=nil{
+		return err;
+	 }
+
+	 if err:= u.deleteUserInvitation(ctx,tx,userID);err!=nil{
+		return err;
+	 }
+
+	 return nil;
+})
+
+} 
+
+
+
+func (u*UsersStore)deleteUser(ctx context.Context,tx *sql.Tx,userID int)error{
+
+	query:=` delete users where user_id=-$1`;
+
+
+	if _,err:=tx.ExecContext(ctx,query,userID);err!=nil{
+		return err;
+	}
+
+return nil;
+}

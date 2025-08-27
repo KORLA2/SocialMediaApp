@@ -3,9 +3,11 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/KORLA2/SocialMedia/internal/mailer"
 	"github.com/KORLA2/SocialMedia/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -57,6 +59,22 @@ func (a *application) RegisterUserHandler(c *gin.Context) {
 	if err := a.store.Users.CreateAndInvite(ctx, &User, hashToken, a.config.mail.expiry); err != nil {
 		a.BadRequest(c, "Cannot Create User", err)
 		return
+	}
+	vars := struct {
+		Username      string
+		ActivationURL string
+	}{
+		User.Username,
+		fmt.Sprintf("%s/confirm/%s", a.config.Frontend_URL, token),
+	}
+
+	if err := a.mailer.Send(mailer.UserWelcomeTemplateFile, User.Username, User.Email, vars, true); err != nil {
+
+		// Rollback User Creation and Invitaion SAGA pattern
+		if err := a.store.Users.Delete(ctx, User.ID); err != nil {
+			a.InternalServerError(c, "User & Invite Transaction Deletion Failed", err)
+		}
+
 	}
 
 	a.Success(c, "Created User Successfully", User, http.StatusOK)
