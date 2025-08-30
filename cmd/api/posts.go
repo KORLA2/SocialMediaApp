@@ -142,7 +142,7 @@ func getPostFromCtx(c *gin.Context) (*models.Post, error) {
 	postInterface, exists := c.Get("post")
 
 	if exists != true {
-		return nil, fmt.Errorf("Post Context Not Fetched")
+		return nil, fmt.Errorf("post context not fetched")
 	}
 	post := postInterface.(*models.Post)
 

@@ -82,22 +82,25 @@ func (app *application) mount() http.Handler {
 	group.POST("comments", app.CreateCommentHandler)
 	group.GET("/user/feed", app.GetUserFeedHandler)
 	middlewareUserGroup := group.Group("/user/:userID")
+	middlewareUserGroup.Use(app.AuthenticateUserMiddleware)
 	middlewareUserGroup.Use(app.UsersContextMiddleWare)
 	middlewareUserGroup.GET("/", app.GetUserHandler)
 	middlewareUserGroup.PUT("follow", app.FollowUserHandler)
 	middlewareUserGroup.PUT("unfollow", app.UnfollowUserHandler)
 
-	middlewareAuthGroup := group.Group("/authenticate/user")
-
-	middlewareAuthGroup.POST("/", app.RegisterUserHandler)
-	middlewareAuthGroup.GET("token", app.CreateTokenHandler)
-	middlewareAuthGroup.PUT("activate/:token", app.ActivateUserHandler)
-
 	middlewarePostGroup := group.Group("/posts/:postID")
+	middlewarePostGroup.Use(app.AuthenticateUserMiddleware)
 	middlewarePostGroup.Use(app.PostsContextMiddleware)
 	middlewarePostGroup.GET("/", app.GetPostHandler)
 	middlewarePostGroup.DELETE("/", app.DeletePostHandler)
 	middlewarePostGroup.PATCH("/", app.UpdatePostHandler)
+
+	// Public Routes
+	middlewareAuthGroup := group.Group("/authenticate/user")
+
+	middlewareAuthGroup.POST("/", app.RegisterUserHandler)
+	middlewareAuthGroup.POST("token", app.CreateTokenHandler)
+	middlewareAuthGroup.PUT("activate/:token", app.ActivateUserHandler)
 
 	return router
 }

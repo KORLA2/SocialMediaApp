@@ -3,9 +3,12 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/KORLA2/SocialMedia/internal/mailer"
@@ -128,7 +131,7 @@ func (a *application) CreateTokenHandler(c *gin.Context) {
 		"sub": user.ID,
 		"iss": a.config.auth.jwt.issuer,
 		"aud": a.config.auth.jwt.audience,
-		"exp": time.Now().Add(a.config.auth.jwt.exp),
+		"exp": time.Now().Add(a.config.auth.jwt.exp).Unix(),
 		"iat": time.Now().Unix(),
 		"nbf": time.Now().Unix(),
 	}
@@ -139,5 +142,38 @@ func (a *application) CreateTokenHandler(c *gin.Context) {
 	}
 
 	a.Success(c, "Successfully fetched User", token, http.StatusOK)
+
+}
+
+func (a *application) AuthenticateUserMiddleware(c *gin.Context) {
+
+	authHeader := c.GetHeader("Authorization")
+
+	authSlice := strings.Split(authHeader, " ")
+
+	if authSlice[0] != "Bearer" || len(authSlice) != 2 {
+		a.Unauthorized(c, "Token Header Malformed", errors.New("need token to make any request"))
+		return
+	}
+
+	token := authSlice[1]
+
+	jwtToken, err := a.auth.ValidateToken(token)
+
+	if err != nil {
+		a.Unauthorized(c, "token is invalid", err)
+		return
+	}
+	claims, _ := jwtToken.Claims.(jwt.MapClaims)
+
+	userID, _ := strconv.Atoi(fmt.Sprintf("%v", claims["sub"]))
+	ctx := c.Request.Context()
+	user, err := a.store.Users.GetUserByID(ctx, userID)
+	if err != nil {
+		a.Unauthorized(c, "token is invalid", err)
+		return
+	}
+
+	c.Set("User", user)
 
 }

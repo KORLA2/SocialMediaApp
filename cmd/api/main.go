@@ -51,6 +51,7 @@ func main() {
 				secret:   env.GetString("SECRET_KEY", "palclub"),
 				audience: env.GetString("audience", "palclub"),
 				issuer:   env.GetString("issuer", "palclub"),
+				exp:      time.Hour * 24 * 3,
 			},
 		},
 	}
