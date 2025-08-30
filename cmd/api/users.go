@@ -12,6 +12,7 @@ import (
 func (a *application) GetUserHandler(c *gin.Context) {
 
 	user, err := GetUserFromContext(c)
+
 	if err != nil {
 		a.InternalServerError(c, "User Context Not set", err)
 		return

@@ -18,3 +18,9 @@ func (a *application) BadRequest(c *gin.Context, errormessage string, err error)
 	c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"data": err.Error()})
 
 }
+
+func (a *application) Unauthorized(c *gin.Context, errormessage string, err error) {
+
+	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"data": err.Error()})
+
+}

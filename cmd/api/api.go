@@ -6,9 +6,11 @@ import (
 	"time"
 
 	"github.com/KORLA2/SocialMedia/cmd/docs"
+	"github.com/KORLA2/SocialMedia/internal/auth"
 	"github.com/KORLA2/SocialMedia/internal/mailer"
 	"github.com/KORLA2/SocialMedia/internal/store"
 	"github.com/gin-gonic/gin"
+
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -16,23 +18,41 @@ import (
 type application struct {
 	config config
 	store  *store.Storage
-	mailer  mailer.Client
+	mailer mailer.Client
+	auth   auth.Authenticator
 }
 
 type config struct {
-	addr string
-	db   dbConfig
+	addr         string
+	db           dbConfig
 	Frontend_URL string
-	mail mailConfig
+	mail         mailConfig
+	auth         authConfig
+}
+
+type authConfig struct {
+	basic basicConfig
+	jwt   jwtConfig
+}
+type basicConfig struct {
+	user     string
+	password string
+}
+
+type jwtConfig struct {
+	secret   string
+	audience string
+	issuer   string
+	exp      time.Duration
 }
 
 type mailConfig struct {
-	sendgrid SendGridConfig
+	sendgrid  SendGridConfig
 	FromEmail string
-	expiry time.Duration
+	expiry    time.Duration
 }
 
-type SendGridConfig struct{
+type SendGridConfig struct {
 	API_KEY string
 }
 
@@ -49,16 +69,18 @@ func (app *application) mount() http.Handler {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 	router.Use(RequestTimeOut(30 * time.Second))
-
 	group := router.Group("/api/v1")
 	group.GET("swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler,
 		ginSwagger.URL("http://localhost:8080/swagger/doc.json"),
 		ginSwagger.DefaultModelsExpandDepth(-1)))
 
-	group.GET("health", app.HealthCheck)
+	group.GET("health", gin.BasicAuth(gin.Accounts{
+		app.config.auth.basic.user: app.config.auth.basic.password,
+	}), app.HealthCheck)
+
 	group.POST("posts", app.CreatePostHandler)
 	group.POST("comments", app.CreateCommentHandler)
-
+	group.GET("/user/feed", app.GetUserFeedHandler)
 	middlewareUserGroup := group.Group("/user/:userID")
 	middlewareUserGroup.Use(app.UsersContextMiddleWare)
 	middlewareUserGroup.GET("/", app.GetUserHandler)
@@ -68,9 +90,8 @@ func (app *application) mount() http.Handler {
 	middlewareAuthGroup := group.Group("/authenticate/user")
 
 	middlewareAuthGroup.POST("/", app.RegisterUserHandler)
-
+	middlewareAuthGroup.GET("token", app.CreateTokenHandler)
 	middlewareAuthGroup.PUT("activate/:token", app.ActivateUserHandler)
-	group.GET("/user/feed", app.GetUserFeedHandler)
 
 	middlewarePostGroup := group.Group("/posts/:postID")
 	middlewarePostGroup.Use(app.PostsContextMiddleware)

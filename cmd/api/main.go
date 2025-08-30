@@ -6,6 +6,7 @@ import (
 	"time"
 
 	env "github.com/KORLA2/SocialMedia/internal"
+	"github.com/KORLA2/SocialMedia/internal/auth"
 	"github.com/KORLA2/SocialMedia/internal/db"
 	"github.com/KORLA2/SocialMedia/internal/mailer"
 	"github.com/KORLA2/SocialMedia/internal/store"
@@ -28,7 +29,8 @@ func main() {
 
 	godotenv.Load(".env")
 	cfg := config{
-		addr: env.GetString("ADDR", ":8008"),
+		addr:         env.GetString("ADDR", ":8008"),
+		Frontend_URL: env.GetString("FRONTEND_URL", "http://localhost:4000"),
 		mail: mailConfig{
 			expiry: time.Hour * 24 * 3,
 			sendgrid: SendGridConfig{
@@ -42,7 +44,15 @@ func main() {
 			maxIdleConns: env.GetInt("MAX_IDLE_CONNS", 25),
 			maxIdleTime:  env.GetString("MAX_IDLE_TIME", (20 * time.Minute).String()),
 		},
-		Frontend_URL: env.GetString("FRONTEND_URL", "http://localhost:4000"),
+
+		auth: authConfig{
+			basic: basicConfig{user: "admin", password: "admin"},
+			jwt: jwtConfig{
+				secret:   env.GetString("SECRET_KEY", "palclub"),
+				audience: env.GetString("audience", "palclub"),
+				issuer:   env.GetString("issuer", "palclub"),
+			},
+		},
 	}
 
 	fmt.Println("Listening on port", cfg.addr)
@@ -56,10 +66,13 @@ func main() {
 
 	mailer := mailer.NewMailer(cfg.mail.FromEmail, cfg.mail.sendgrid.API_KEY)
 
+	authenticator := auth.NewJWTAuthenticator(cfg.auth.jwt.secret, cfg.auth.jwt.audience, cfg.auth.jwt.issuer)
+
 	app := &application{
 		config: cfg,
 		store:  storage,
 		mailer: mailer,
+		auth:   authenticator,
 	}
 	mux := app.mount()
 	log.Fatal(app.Run(mux))

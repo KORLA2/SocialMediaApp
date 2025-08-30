@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"errors"
 	"log"
 	"time"
 
@@ -36,16 +37,49 @@ func (u *UsersStore) create(ctx context.Context, tx *sql.Tx, User *models.User) 
 func (u *UsersStore) GetUserByID(ctx context.Context, userID int) (*models.User, error) {
 
 	query := ` Select id, email,user_name,password,created_at from users
-	where id=$1
+	where id=$1 and is_active=$2
 	`
 	var user models.User
 
-	if err := u.db.QueryRowContext(ctx, query, userID).
+	if err := u.db.QueryRowContext(ctx, query, userID, true).
 		Scan(&user.ID, &user.Email, &user.Username, &user.Password, &user.CreatedAt); err != nil {
-		return nil, err
+
+		switch err.Error() {
+
+		case "sql: no rows in result set":
+			return nil, errors.New("either user id is not valid or user not verified")
+
+		default:
+
+			return nil, err
+		}
 	}
 
 	return &user, nil
+
+}
+
+func (u *UsersStore) GetUserByUserName(ctx context.Context, UserName string, user *models.User) error {
+
+	query := ` select id, email,user_name,password,created_at
+from users where user_name=$1 and is_active=$2
+
+`
+	if err := u.db.QueryRowContext(ctx, query, UserName, true).
+		Scan(&user.ID, &user.Email, &user.Username, &user.Password, &user.CreatedAt); err != nil {
+
+		switch err {
+
+		case sql.ErrNoRows:
+			return errors.New("either user id is not valid or user not verified")
+
+		default:
+
+			return err
+		}
+
+	}
+	return nil
 
 }
 
@@ -147,36 +181,32 @@ func (u *UsersStore) createUserInvite(ctx context.Context, tx *sql.Tx, userID in
 	return nil
 }
 
+func (u *UsersStore) Delete(ctx context.Context, userID int) error {
 
-func (u*UsersStore)Delete(ctx context.Context,userID int)error{
+	return withTx(u.db, ctx, func(tx *sql.Tx) error {
 
-return withTx(u.db,ctx,func(tx *sql.Tx) error {
+		// Delete User and Invitation
 
-// Delete User and Invitation
+		if err := u.deleteUser(ctx, tx, userID); err != nil {
+			return err
+		}
 
-     if err:= u.deleteUser(ctx,tx,userID);err!=nil{
-		return err;
-	 }
+		if err := u.deleteUserInvitation(ctx, tx, userID); err != nil {
+			return err
+		}
 
-	 if err:= u.deleteUserInvitation(ctx,tx,userID);err!=nil{
-		return err;
-	 }
+		return nil
+	})
 
-	 return nil;
-})
+}
 
-} 
+func (u *UsersStore) deleteUser(ctx context.Context, tx *sql.Tx, userID int) error {
 
+	query := ` delete users where user_id=-$1`
 
-
-func (u*UsersStore)deleteUser(ctx context.Context,tx *sql.Tx,userID int)error{
-
-	query:=` delete users where user_id=-$1`;
-
-
-	if _,err:=tx.ExecContext(ctx,query,userID);err!=nil{
-		return err;
+	if _, err := tx.ExecContext(ctx, query, userID); err != nil {
+		return err
 	}
 
-return nil;
+	return nil
 }

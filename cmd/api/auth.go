@@ -6,16 +6,23 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/KORLA2/SocialMedia/internal/mailer"
 	"github.com/KORLA2/SocialMedia/models"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserPayload struct {
 	Email    string `json:"email" validate:"required,email"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+}
+
+type LoginPayload struct {
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
 }
@@ -89,5 +96,48 @@ func (a *application) ActivateUserHandler(c *gin.Context) {
 	if err := a.store.Users.Activate(ctx, token); err != nil {
 		a.BadRequest(c, "token error", err)
 	}
+
+}
+
+func (a *application) CreateTokenHandler(c *gin.Context) {
+
+	ctx := c.Request.Context()
+
+	var payload LoginPayload
+
+	if err := c.BindJSON(&payload); err != nil {
+
+		a.BadRequest(c, "Cannot Bind Login Paylaod", err)
+		return
+	}
+
+	if err := validate.Struct(payload); err != nil {
+		a.BadRequest(c, "Login Validation Failed", err)
+		return
+	}
+
+	user := &models.User{}
+	if err := a.store.Users.GetUserByUserName(ctx, payload.Username, user); err != nil {
+		a.Unauthorized(c, "Username not found", err)
+		return
+	}
+
+	// Token Creation
+
+	claims := jwt.MapClaims{
+		"sub": user.ID,
+		"iss": a.config.auth.jwt.issuer,
+		"aud": a.config.auth.jwt.audience,
+		"exp": time.Now().Add(a.config.auth.jwt.exp),
+		"iat": time.Now().Unix(),
+		"nbf": time.Now().Unix(),
+	}
+	token, err := a.auth.GenerateToken(claims)
+	if err != nil {
+		a.InternalServerError(c, "Cannot generate token", err)
+		return
+	}
+
+	a.Success(c, "Successfully fetched User", token, http.StatusOK)
 
 }
