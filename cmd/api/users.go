@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/KORLA2/SocialMedia/models"
 	"github.com/gin-gonic/gin"
@@ -19,22 +18,6 @@ func (a *application) GetUserHandler(c *gin.Context) {
 	}
 
 	a.Success(c, "Fecthed User Successfully ", *user, http.StatusOK)
-
-}
-
-func (a *application) UsersContextMiddleWare(c *gin.Context) {
-
-	ctx := c.Request.Context()
-
-	userIDstring := c.Param("userID")
-	userID, _ := strconv.Atoi(userIDstring)
-	user, err := a.store.Users.GetUserByID(ctx, userID)
-
-	if err != nil {
-		a.InternalServerError(c, "Cannot Get User", err)
-		return
-	}
-	c.Set("User", user)
 
 }
 

@@ -92,9 +92,10 @@ func (s *PostsStore) Create(ctx context.Context, post *models.Post) error {
 
 func (s *PostsStore) GetPostByID(ctx context.Context, postID int) (*models.Post, error) {
 
-	query := `SELECT id,title,content,tags,created_at,updated_at from posts WHERE id=$1`
+	query := `SELECT id,title,content,user_id,tags,created_at,updated_at from posts WHERE id=$1`
 
 	var post models.Post
+
 	if err := s.db.QueryRowContext(
 		ctx,
 		query,
@@ -102,6 +103,7 @@ func (s *PostsStore) GetPostByID(ctx context.Context, postID int) (*models.Post,
 		&post.ID,
 		&post.Title,
 		&post.Content,
+		&post.User_ID,
 		pq.Array(&post.Tags),
 		&post.CreatedAt,
 		&post.UpdatedAt,

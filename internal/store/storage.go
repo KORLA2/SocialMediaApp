@@ -19,7 +19,7 @@ type Storage struct {
 	Users interface {
 		CreateAndInvite(context.Context, *models.User, string, time.Duration) error
 		GetUserByID(context.Context, int) (*models.User, error)
-		GetUserByUserName(context.Context, string, *models.User) error
+		GetUserByUserName(context.Context, string) (*LoginPayload, error)
 		Activate(context.Context, string) error
 		Delete(context.Context, int) error
 	}

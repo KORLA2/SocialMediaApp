@@ -3,60 +3,62 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-type FollowPayload struct {
-	UserID int `json:"userid"`
-}
-
 func (a *application) FollowUserHandler(c *gin.Context) {
 
 	ctx := c.Request.Context()
-	followerUser, err := GetUserFromContext(c)
+	followerUser, _ := strconv.Atoi(c.Param("userID"))
+	User, err := GetUserFromContext(c)
 
 	if err != nil {
 		a.InternalServerError(c, "Follower User Context Not FOund", err)
 		return
 	}
-	var payload FollowPayload
 
-	if err := c.BindJSON(&payload); err != nil {
-		a.BadRequest(c, "Cannot Bind Followers json", err)
-		return
-	}
-	if payload.UserID == followerUser.ID {
+	if User.ID == followerUser {
 		a.BadRequest(c, "Cannot Do this", fmt.Errorf("You cannot follow yoursef"))
 		return
 	}
 
-	if err := a.store.Followers.Create(ctx, followerUser.ID, payload.UserID); err != nil {
+_, err = a.store.Users.GetUserByID(ctx, followerUser)
+	if err != nil {
+		a.Unauthorized(c, "token is invalid", err)
+		return
+	}
+
+	if err := a.store.Followers.Create(ctx, followerUser, User.ID); err != nil {
 		a.InternalServerError(c, "Cannot Create a Follow Request", err)
 		return
 	}
-	a.Success(c, "Followed User", followerUser.ID, http.StatusOK)
+	a.Success(c, "Followed User", followerUser, http.StatusOK)
 
 }
 func (a *application) UnfollowUserHandler(c *gin.Context) {
 
 	ctx := c.Request.Context()
-	followerUser, err := GetUserFromContext(c)
+	followerUser, _ := strconv.Atoi(c.Param("userID"))
+	User, err := GetUserFromContext(c)
+
 
 	if err != nil {
 		a.InternalServerError(c, "Follower User Context Not Found", err)
 		return
 	}
-	var payload FollowPayload
-
-	if err := c.BindJSON(&payload); err != nil {
-		a.BadRequest(c, "Cannot Bind Followers json", err)
+	_, err = a.store.Users.GetUserByID(ctx, followerUser)
+	if err != nil {
+		a.Unauthorized(c, "token is invalid", err)
 		return
 	}
-	if err := a.store.Followers.Delete(ctx, followerUser.ID, payload.UserID); err != nil {
+
+
+	if err := a.store.Followers.Delete(ctx, followerUser, User.ID); err != nil {
 		a.InternalServerError(c, "Cannot Unfollow", err)
 		return
 	}
-	a.Success(c, "UnFollowed User", followerUser.ID, http.StatusOK)
+	a.Success(c, "UnFollowed User", followerUser, http.StatusOK)
 
 }

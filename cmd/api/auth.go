@@ -25,9 +25,9 @@ type UserPayload struct {
 	Password string `json:"password" validate:"required"`
 }
 
-type LoginPayload struct {
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
+type LoginUserPayload struct {
+	Username string `json:"username" validate:"required,min=3,max=100"`
+	Password string `json:"password" validate:"required,min=4,max=10"`
 }
 
 func HashPassword(password string) string {
@@ -35,6 +35,17 @@ func HashPassword(password string) string {
 	pass, _ := bcrypt.GenerateFromPassword([]byte(password), 14)
 
 	return string(pass)
+}
+
+func ValidateUserPassword(payloadpassword, userpassword string) bool {
+
+	err := bcrypt.CompareHashAndPassword([]byte(userpassword), []byte(payloadpassword))
+	if err != nil {
+		return false
+	}
+
+	return true
+
 }
 
 func (a *application) RegisterUserHandler(c *gin.Context) {
@@ -102,11 +113,11 @@ func (a *application) ActivateUserHandler(c *gin.Context) {
 
 }
 
-func (a *application) CreateTokenHandler(c *gin.Context) {
+func (a *application) LoginUserHandler(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	var payload LoginPayload
+	var payload LoginUserPayload
 
 	if err := c.BindJSON(&payload); err != nil {
 
@@ -118,10 +129,14 @@ func (a *application) CreateTokenHandler(c *gin.Context) {
 		a.BadRequest(c, "Login Validation Failed", err)
 		return
 	}
+	user, err := a.store.Users.GetUserByUserName(ctx, payload.Username)
+	if err != nil {
+		a.Unauthorized(c, "Username or password is incorrect", err)
+		return
+	}
 
-	user := &models.User{}
-	if err := a.store.Users.GetUserByUserName(ctx, payload.Username, user); err != nil {
-		a.Unauthorized(c, "Username not found", err)
+	if ok := ValidateUserPassword(payload.Password, user.Password); !ok {
+		a.Unauthorized(c, "Username or password is incorrect", err)
 		return
 	}
 

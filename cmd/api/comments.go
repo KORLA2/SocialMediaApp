@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/KORLA2/SocialMedia/models"
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,13 @@ type CommentPayload struct {
 }
 
 func (a *application) CreateCommentHandler(c *gin.Context) {
+
+	postID, _ := strconv.Atoi(c.Param("postID"))
+	User, err := GetUserFromContext(c)
+     if err != nil {
+		a.InternalServerError(c, "User Context Not Found", err)
+		return
+	}
 
 	ctx := c.Request.Context()
 	var payload CommentPayload
@@ -26,8 +34,8 @@ func (a *application) CreateCommentHandler(c *gin.Context) {
 	}
 	comment := models.Comment{
 
-		PostID:  7,
-		UserID:  1,
+		PostID:  postID,
+		UserID:  User.ID,
 		Content: payload.Content,
 	}
 

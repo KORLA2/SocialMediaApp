@@ -36,18 +36,23 @@ func (u *UsersStore) create(ctx context.Context, tx *sql.Tx, User *models.User) 
 
 func (u *UsersStore) GetUserByID(ctx context.Context, userID int) (*models.User, error) {
 
-	query := ` Select id, email,user_name,password,created_at from users
+	query := ` Select id, email,user_name,password,created_at , is_active from users
 	where id=$1 and is_active=$2
 	`
 	var user models.User
 
 	if err := u.db.QueryRowContext(ctx, query, userID, true).
-		Scan(&user.ID, &user.Email, &user.Username, &user.Password, &user.CreatedAt); err != nil {
+		Scan(&user.ID,
+			&user.Email,
+			&user.Username,
+			&user.Password,
+			&user.CreatedAt,
+			&user.IsActive); err != nil {
 
 		switch err.Error() {
 
 		case "sql: no rows in result set":
-			return nil, errors.New("either user id is not valid or user not verified")
+			return nil, errors.New("either follower user id is not valid or follower user not verified")
 
 		default:
 
@@ -59,27 +64,33 @@ func (u *UsersStore) GetUserByID(ctx context.Context, userID int) (*models.User,
 
 }
 
-func (u *UsersStore) GetUserByUserName(ctx context.Context, UserName string, user *models.User) error {
+type LoginPayload struct {
+	ID       int    `json:"id"`
+	Username string `json:"user_name"`
+	Password string `json:"password"`
+}
 
-	query := ` select id, email,user_name,password,created_at
+func (u *UsersStore) GetUserByUserName(ctx context.Context, UserName string) (*LoginPayload, error) {
+
+	query := ` select id,user_name,password
 from users where user_name=$1 and is_active=$2
-
 `
+	var user LoginPayload
 	if err := u.db.QueryRowContext(ctx, query, UserName, true).
-		Scan(&user.ID, &user.Email, &user.Username, &user.Password, &user.CreatedAt); err != nil {
+		Scan(&user.ID, &user.Username, &user.Password); err != nil {
 
 		switch err {
 
 		case sql.ErrNoRows:
-			return errors.New("either user id is not valid or user not verified")
+			return nil, errors.New("either your user id is not valid or you are not verified")
 
 		default:
 
-			return err
+			return nil, err
 		}
 
 	}
-	return nil
+	return &user, nil
 
 }
 

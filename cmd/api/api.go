@@ -77,19 +77,18 @@ func (app *application) mount() http.Handler {
 	group.GET("health", gin.BasicAuth(gin.Accounts{
 		app.config.auth.basic.user: app.config.auth.basic.password,
 	}), app.HealthCheck)
-
-	group.POST("posts", app.CreatePostHandler)
-	group.POST("comments", app.CreateCommentHandler)
-	group.GET("/user/feed", app.GetUserFeedHandler)
-	middlewareUserGroup := group.Group("/user/:userID")
-	middlewareUserGroup.Use(app.AuthenticateUserMiddleware)
-	middlewareUserGroup.Use(app.UsersContextMiddleWare)
+	protected := group.Group("/")
+	protected.Use(app.AuthenticateUserMiddleware)
+	protected.POST("posts", app.CreatePostHandler)
+	protected.POST("post/:postID/comments", app.CreateCommentHandler)
+	protected.GET("/user/feed", app.GetUserFeedHandler)
+	middlewareUserGroup := protected.Group("/user/:userID")
+	// middlewareUserGroup.Use(app.UsersContextMiddleWare)
 	middlewareUserGroup.GET("/", app.GetUserHandler)
 	middlewareUserGroup.PUT("follow", app.FollowUserHandler)
 	middlewareUserGroup.PUT("unfollow", app.UnfollowUserHandler)
 
-	middlewarePostGroup := group.Group("/posts/:postID")
-	middlewarePostGroup.Use(app.AuthenticateUserMiddleware)
+	middlewarePostGroup := protected.Group("/posts/:postID")
 	middlewarePostGroup.Use(app.PostsContextMiddleware)
 	middlewarePostGroup.GET("/", app.GetPostHandler)
 	middlewarePostGroup.DELETE("/", app.DeletePostHandler)
@@ -98,8 +97,8 @@ func (app *application) mount() http.Handler {
 	// Public Routes
 	middlewareAuthGroup := group.Group("/authenticate/user")
 
-	middlewareAuthGroup.POST("/", app.RegisterUserHandler)
-	middlewareAuthGroup.POST("token", app.CreateTokenHandler)
+	middlewareAuthGroup.POST("signup", app.RegisterUserHandler)
+	middlewareAuthGroup.POST("signin", app.LoginUserHandler)
 	middlewareAuthGroup.PUT("activate/:token", app.ActivateUserHandler)
 
 	return router
