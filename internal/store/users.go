@@ -18,8 +18,8 @@ type UsersStore struct {
 
 func (u *UsersStore) create(ctx context.Context, tx *sql.Tx, User *models.User) error {
 
-	query := `INSERT INTO users (email,user_name,password) 
-	VALUES ($1,$2,$3) RETURNING id,created_at `
+	query := `INSERT INTO users (email,user_name,password,role_id) 
+	VALUES ($1,$2,$3,$4) RETURNING id,created_at `
 
 	if err := tx.QueryRowContext(
 		ctx,
@@ -27,6 +27,7 @@ func (u *UsersStore) create(ctx context.Context, tx *sql.Tx, User *models.User) 
 		User.Email,
 		User.Username,
 		User.Password,
+		User.Role.Level,
 	).Scan(&User.ID, &User.CreatedAt); err != nil {
 		return err
 	}
@@ -36,7 +37,8 @@ func (u *UsersStore) create(ctx context.Context, tx *sql.Tx, User *models.User) 
 
 func (u *UsersStore) GetUserByID(ctx context.Context, userID int) (*models.User, error) {
 
-	query := ` Select id, email,user_name,password,created_at , is_active from users
+	query := ` Select id, email,user_name,password,created_at , is_active,r.role_id,r.name,r.level,r.description from users
+	join roles r on users.role_id=r.role_id
 	where id=$1 and is_active=$2
 	`
 	var user models.User
@@ -47,7 +49,12 @@ func (u *UsersStore) GetUserByID(ctx context.Context, userID int) (*models.User,
 			&user.Username,
 			&user.Password,
 			&user.CreatedAt,
-			&user.IsActive); err != nil {
+			&user.IsActive,
+			&user.Role.ID,
+			&user.Role.Name,
+			&user.Role.Level,
+			&user.Role.Description,
+		); err != nil {
 
 		switch err.Error() {
 

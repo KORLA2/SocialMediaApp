@@ -24,3 +24,8 @@ func (a *application) Unauthorized(c *gin.Context, errormessage string, err erro
 	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"data": err.Error()})
 
 }
+func (a *application) ForbiddenError(c *gin.Context, errormessage string, err error) {
+
+	c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"data": err.Error()})
+
+}

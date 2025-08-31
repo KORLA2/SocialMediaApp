@@ -6,7 +6,7 @@ type Post struct {
 	ID        int       `josn:"id"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
-	User_ID   int       `json:"user_id"`
+	UserID    int       `json:"user_id"`
 	Tags      []string  `json:"tags"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -28,6 +28,14 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 	IsActive  bool      `json:"is_active"`
 	Token     string    `json:"token"`
+	Role      Role
+}
+
+type Role struct {
+	ID          int    `json:"role_id"`
+	Name        string `json:"name"`
+	Level       int    `json:"level"`
+	Description string `json:"description"`
 }
 
 type Comment struct {

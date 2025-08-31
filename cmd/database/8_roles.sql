@@ -1,6 +1,6 @@
 create table if not exists roles  (
 
-id bigserial primary KEY,
+role_id bigserial primary KEY,
 name text not null unique,
 level int not null default 0,
 description text

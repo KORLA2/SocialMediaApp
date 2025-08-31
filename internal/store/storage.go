@@ -31,6 +31,9 @@ type Storage struct {
 		Create(context.Context, int, int) error
 		Delete(context.Context, int, int) error
 	}
+	Roles interface{
+GetRoleByName(context.Context,string)(*models.Role, error)
+	}
 }
 
 func NewStorage(db *sql.DB) *Storage {
@@ -39,6 +42,7 @@ func NewStorage(db *sql.DB) *Storage {
 		Users:     &UsersStore{db},
 		Comments:  &CommentsStore{db},
 		Followers: &FollowStore{db},
+		Roles: &RoleStore{db},
 	}
 
 }

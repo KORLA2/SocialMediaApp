@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -38,10 +40,12 @@ func (a *application) CreatePostHandler(c *gin.Context) {
 		a.BadRequest(c, "Validation Failed", err)
 		return
 	}
+	User, _ := GetUserFromContext(c)
+
 	post := models.Post{
 		Title:   payload.Title,
 		Content: payload.Content,
-		User_ID: 1,
+		UserID:  User.ID,
 		Tags:    payload.Tags,
 	}
 
@@ -141,11 +145,43 @@ func getPostFromCtx(c *gin.Context) (*models.Post, error) {
 
 	postInterface, exists := c.Get("post")
 
-	if exists != true {
+	if !exists {
 		return nil, fmt.Errorf("post context not fetched")
 	}
 	post := postInterface.(*models.Post)
 
 	return post, nil
 
+}
+
+func (a *application) CheckPostOwnership(minimumRequiredRole string, handler gin.HandlerFunc) gin.HandlerFunc {
+
+	return func(c *gin.Context) {
+		ctx := c.Request.Context()
+		User, _ := GetUserFromContext(c)
+		Post, _ := getPostFromCtx(c)
+
+		if Post.UserID == User.ID {
+			handler(c)
+			return
+		}
+
+		allowed, _ := a.checkPrecedence(ctx, minimumRequiredRole, User.Role.Level)
+
+		if !allowed {
+			a.ForbiddenError(c, "Not Allowed", errors.New("you are not allowed to perform this operation"))
+			return
+		}
+		handler(c)
+
+	}
+}
+
+func (a *application) checkPrecedence(ctx context.Context, minimumRequiredRole string, myLevel int) (bool, error) {
+
+	role, err := a.store.Roles.GetRoleByName(ctx, minimumRequiredRole)
+	if err != nil {
+		return false, err
+	}
+	return myLevel >= role.Level, nil
 }

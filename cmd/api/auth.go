@@ -23,11 +23,12 @@ type UserPayload struct {
 	Email    string `json:"email" validate:"required,email"`
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
+	Level    int    `json:"level" validate:"required"`
 }
 
 type LoginUserPayload struct {
 	Username string `json:"username" validate:"required,min=3,max=100"`
-	Password string `json:"password" validate:"required,min=4,max=10"`
+	Password string `json:"password" validate:"required,min=4,max=100"`
 }
 
 func HashPassword(password string) string {
@@ -76,7 +77,9 @@ func (a *application) RegisterUserHandler(c *gin.Context) {
 		Username: payload.Username,
 		Password: payload.Password,
 		Token:    token,
+		Role:     models.Role{Level: payload.Level},
 	}
+
 	if err := a.store.Users.CreateAndInvite(ctx, &User, hashToken, a.config.mail.expiry); err != nil {
 		a.BadRequest(c, "Cannot Create User", err)
 		return
@@ -110,7 +113,7 @@ func (a *application) ActivateUserHandler(c *gin.Context) {
 	if err := a.store.Users.Activate(ctx, token); err != nil {
 		a.BadRequest(c, "token error", err)
 	}
-
+	a.Success(c, "User activated Successfully", "User activated Successfully", http.StatusOK)
 }
 
 func (a *application) LoginUserHandler(c *gin.Context) {

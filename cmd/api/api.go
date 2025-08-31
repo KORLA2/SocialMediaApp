@@ -91,8 +91,8 @@ func (app *application) mount() http.Handler {
 	middlewarePostGroup := protected.Group("/posts/:postID")
 	middlewarePostGroup.Use(app.PostsContextMiddleware)
 	middlewarePostGroup.GET("/", app.GetPostHandler)
-	middlewarePostGroup.DELETE("/", app.DeletePostHandler)
-	middlewarePostGroup.PATCH("/", app.UpdatePostHandler)
+	middlewarePostGroup.DELETE("/", app.CheckPostOwnership("admin",app.DeletePostHandler))
+	middlewarePostGroup.PATCH("/",app.CheckPostOwnership("moderator",app.UpdatePostHandler))
 
 	// Public Routes
 	middlewareAuthGroup := group.Group("/authenticate/user")
