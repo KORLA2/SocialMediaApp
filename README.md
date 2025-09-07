@@ -48,7 +48,7 @@ A simple social media backend built with Go + Gin, featuring user posts, comment
 
 2. Feed sorted by recent posts or relevance.
    
-    **Search Posts**
+  Search Posts
 
 3. Search functionality based on post content.
 
