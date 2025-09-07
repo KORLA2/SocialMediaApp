@@ -11,7 +11,6 @@ type FollowStore struct {
 
 func (f *FollowStore) Create(ctx context.Context, followerID, userID int) error {
 
-	
 	query := `Insert into followers (user_id,follower_id) 
 	values($1,$2)	
 	`

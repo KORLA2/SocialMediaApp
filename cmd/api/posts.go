@@ -25,9 +25,22 @@ type UpdatePostPayload struct {
 	Content string `json:"content" validate:"omitempty,max=1000"`
 }
 
+// CreatePost godoc
+//
+//	@Summary		Creates a new post
+//	@Description	Creates a valid user post with title, content, and tags
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		PostPayload	true	"Post data"
+//	@Success		200		{object}	models.Post
+//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/posts [post]
 func (a *application) CreatePostHandler(c *gin.Context) {
 
-	// ctx
 	ctx := c.Request.Context()
 	var payload PostPayload
 
@@ -57,6 +70,20 @@ func (a *application) CreatePostHandler(c *gin.Context) {
 
 }
 
+// GetPost           godoc
+//
+//	@Summary		Fetches a user post
+//	@Description	Fetches any valid and verified  user's post  by ID
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			postID	path		int	true	"postID"
+//	@Success		200		{object}	models.Post
+//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/posts/{postID} [get]
 func (a *application) GetPostHandler(c *gin.Context) {
 
 	post, err := getPostFromCtx(c)
@@ -77,6 +104,20 @@ func (a *application) GetPostHandler(c *gin.Context) {
 
 }
 
+// Delete Post     godoc
+//
+//	@Summary		Deletes a user post
+//	@Description	Deletes a user's post by ID Admin can delete any post and user can delete his own post.
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			postID	path		int	true	"postID"
+//	@Success		200		{object}	models.Post
+//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/posts/{postID} [delete]
 func (a *application) DeletePostHandler(c *gin.Context) {
 	postIDstring := c.Param("postID")
 	postID, _ := strconv.Atoi(postIDstring)
@@ -91,6 +132,21 @@ func (a *application) DeletePostHandler(c *gin.Context) {
 
 }
 
+// UpdatePost           godoc
+//
+//	@Summary		Updates a user post
+//	@Description	Updates user's post  by ID Admin and moderator can update any user post, user can update his own post
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			postID	path		int					true	"postID"
+//	@Param			payload	body		UpdatePostPayload	true	"Post data"
+//	@Success		200		{object}	models.Post
+//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/posts/{postID} [patch]
 func (a *application) UpdatePostHandler(c *gin.Context) {
 
 	post, err := getPostFromCtx(c)

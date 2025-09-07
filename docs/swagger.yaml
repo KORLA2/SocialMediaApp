@@ -1,0 +1,596 @@
+basePath: /api/v1
+definitions:
+  main.CommentPayload:
+    properties:
+      content:
+        maxLength: 100
+        type: string
+    required:
+    - content
+    type: object
+  main.LoginUserPayload:
+    properties:
+      password:
+        maxLength: 100
+        minLength: 4
+        type: string
+      username:
+        maxLength: 100
+        minLength: 3
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  main.PostPayload:
+    properties:
+      content:
+        maxLength: 1000
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        maxLength: 100
+        type: string
+    required:
+    - content
+    - title
+    type: object
+  main.UpdatePostPayload:
+    properties:
+      content:
+        maxLength: 1000
+        type: string
+      title:
+        maxLength: 100
+        type: string
+    type: object
+  main.UserPayload:
+    properties:
+      email:
+        type: string
+      level:
+        maximum: 3
+        minimum: 1
+        type: integer
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - level
+    - password
+    - username
+    type: object
+  models.Comment:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      post_id:
+        type: integer
+      user:
+        $ref: '#/definitions/models.User'
+      user_id:
+        type: integer
+    type: object
+  models.Post:
+    properties:
+      comments:
+        items:
+          $ref: '#/definitions/models.Comment'
+        type: array
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      user_id:
+        type: integer
+    type: object
+  models.Role:
+    properties:
+      description:
+        type: string
+      level:
+        type: integer
+      name:
+        type: string
+      role_id:
+        type: integer
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      role:
+        $ref: '#/definitions/models.Role'
+      token:
+        type: string
+      username:
+        type: string
+    type: object
+  models.UserFeed:
+    properties:
+      comments:
+        items:
+          $ref: '#/definitions/models.Comment'
+        type: array
+      comments_count:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      post_score:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      user_id:
+        type: integer
+    type: object
+host: localhost:8008
+info:
+  contact: {}
+  description: This is a sample social media backend built with Go + Gin.
+  title: Pal Club API
+  version: "1.0"
+paths:
+  /authenticate/user/activate/{token}:
+    put:
+      consumes:
+      - application/json
+      description: Activates a new user account via the token sent to their email
+      parameters:
+      - description: Activation token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User activated successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Activates a new user
+      tags:
+      - users
+  /authenticate/user/signin:
+    post:
+      consumes:
+      - application/json
+      description: Logs in a user with username and password, returning a JWT token
+        for authenticated requests
+      parameters:
+      - description: User Login Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.LoginUserPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User activated successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Logs in a user and returns a JWT token
+      tags:
+      - users
+  /authenticate/user/signup:
+    post:
+      consumes:
+      - application/json
+      description: 'Registers a new user with email, username, password, and role
+        level: 1 for user 2 for moderator 3 for admin'
+      parameters:
+      - description: User Signup
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.UserPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Registers a new user
+      tags:
+      - users
+  /post/{postID}/comments:
+    post:
+      consumes:
+      - application/json
+      description: Creates a valid comment on a post with content
+      parameters:
+      - description: Create comment for post ID
+        in: path
+        name: postID
+        required: true
+        type: integer
+      - description: The comment content and metadata to create a new comment
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CommentPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Comment'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Creates a new comment on a post
+      tags:
+      - users
+  /posts:
+    post:
+      consumes:
+      - application/json
+      description: Creates a valid user post with title, content, and tags
+      parameters:
+      - description: Post data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.PostPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Post'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Creates a new post
+      tags:
+      - users
+  /posts/{postID}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a user's post by ID Admin can delete any post and user
+        can delete his own post.
+      parameters:
+      - description: postID
+        in: path
+        name: postID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Post'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Deletes a user post
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Fetches any valid and verified  user's post  by ID
+      parameters:
+      - description: postID
+        in: path
+        name: postID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Post'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Fetches a user post
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      description: Updates user's post  by ID Admin and moderator can update any user
+        post, user can update his own post
+      parameters:
+      - description: postID
+        in: path
+        name: postID
+        required: true
+        type: integer
+      - description: Post data
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdatePostPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Post'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Updates a user post
+      tags:
+      - users
+  /user/{id}/follow:
+    put:
+      consumes:
+      - application/json
+      description: Follows a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Follows a user
+      tags:
+      - users
+  /user/{id}/unfollow:
+    put:
+      consumes:
+      - application/json
+      description: UnFollows a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: UnFollows a user
+      tags:
+      - users
+  /user/feed:
+    get:
+      consumes:
+      - application/json
+      description: Fetches a user feed based on the users they follow
+      parameters:
+      - description: Number of items to return
+        in: query
+        name: limit
+        type: integer
+      - description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      - description: Sort order (asc/desc)
+        in: query
+        name: sort
+        type: string
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserFeed'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Fetches a user feed
+      tags:
+      - users
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Fetches a user profile by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Fetches a user profile
+      tags:
+      - users
+securityDefinitions:
+  ApiKeyAuth:
+    description: Type "Bearer <your JWT token>" to authenticate
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

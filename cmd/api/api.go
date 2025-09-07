@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/KORLA2/SocialMedia/cmd/docs"
 	"github.com/KORLA2/SocialMedia/internal/auth"
 	"github.com/KORLA2/SocialMedia/internal/mailer"
 	"github.com/KORLA2/SocialMedia/internal/store"
@@ -70,9 +69,8 @@ func (app *application) mount() http.Handler {
 	router.Use(gin.Recovery())
 	router.Use(RequestTimeOut(30 * time.Second))
 	group := router.Group("/api/v1")
-	group.GET("swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler,
-		ginSwagger.URL("http://localhost:8080/swagger/doc.json"),
-		ginSwagger.DefaultModelsExpandDepth(-1)))
+	// use ginSwagger middleware to serve the API docs
+	group.GET("swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	group.GET("health", gin.BasicAuth(gin.Accounts{
 		app.config.auth.basic.user: app.config.auth.basic.password,
@@ -81,9 +79,9 @@ func (app *application) mount() http.Handler {
 	protected.Use(app.AuthenticateUserMiddleware)
 	protected.POST("posts", app.CreatePostHandler)
 	protected.POST("post/:postID/comments", app.CreateCommentHandler)
-	protected.GET("/user/feed", app.GetUserFeedHandler)
+	protected.GET("user/feed", app.GetUserFeedHandler)
 	middlewareUserGroup := protected.Group("/user/:userID")
-	// middlewareUserGroup.Use(app.UsersContextMiddleWare)
+	middlewareUserGroup.Use(app.FollowUserContextMiddleware)
 	middlewareUserGroup.GET("/", app.GetUserHandler)
 	middlewareUserGroup.PUT("follow", app.FollowUserHandler)
 	middlewareUserGroup.PUT("unfollow", app.UnfollowUserHandler)
@@ -91,8 +89,8 @@ func (app *application) mount() http.Handler {
 	middlewarePostGroup := protected.Group("/posts/:postID")
 	middlewarePostGroup.Use(app.PostsContextMiddleware)
 	middlewarePostGroup.GET("/", app.GetPostHandler)
-	middlewarePostGroup.DELETE("/", app.CheckPostOwnership("admin",app.DeletePostHandler))
-	middlewarePostGroup.PATCH("/",app.CheckPostOwnership("moderator",app.UpdatePostHandler))
+	middlewarePostGroup.DELETE("/", app.CheckPostOwnership("admin", app.DeletePostHandler))
+	middlewarePostGroup.PATCH("/", app.CheckPostOwnership("moderator", app.UpdatePostHandler))
 
 	// Public Routes
 	middlewareAuthGroup := group.Group("/authenticate/user")
@@ -105,7 +103,7 @@ func (app *application) mount() http.Handler {
 }
 
 func (app *application) Run(mux http.Handler) error {
-	docs.SwaggerInfo.BasePath = "/api/v1"
+
 	server := &http.Server{
 		Addr:         app.config.addr,
 		Handler:      mux,

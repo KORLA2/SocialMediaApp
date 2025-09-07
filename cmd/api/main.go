@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	_ "github.com/KORLA2/SocialMedia/docs"
 	env "github.com/KORLA2/SocialMedia/internal"
 	"github.com/KORLA2/SocialMedia/internal/auth"
 	"github.com/KORLA2/SocialMedia/internal/db"
@@ -13,19 +14,17 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// @title						Pal Club API
+// @version					1.0
+// @description				This is a sample social media backend built with Go + Gin.
+// @host						localhost:8008
+// @BasePath					/api/v1
+//
+// @securityDefinitions.apikey	ApiKeyAuth
+// @in							header
+// @name						Authorization
+// @description				Type "Bearer <your JWT token>" to authenticate
 func main() {
-
-	// @BasePath /api/v1
-
-	// PingExample godoc
-	// @Summary ping example
-	// @Schemes
-	// @Title do ping
-	// @Tags example
-	// @Accept json
-	// @Produce json
-	// @Success 200 {string} Helloworld
-	// @Router /api/v1/helloworld [get]
 
 	godotenv.Load(".env")
 	cfg := config{

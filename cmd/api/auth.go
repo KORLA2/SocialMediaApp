@@ -23,7 +23,7 @@ type UserPayload struct {
 	Email    string `json:"email" validate:"required,email"`
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
-	Level    int    `json:"level" validate:"required"`
+	Level    int    `json:"level" validate:"required,min=1,max=3"`
 }
 
 type LoginUserPayload struct {
@@ -49,6 +49,20 @@ func ValidateUserPassword(payloadpassword, userpassword string) bool {
 
 }
 
+// User SignUp           godoc
+//
+//	@Summary		Registers a new user
+//	@Description	Registers a new user with email, username, password, and role level: 1 for user 2 for moderator 3 for admin
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		UserPayload	true	"User Signup"
+//	@Success		200		{object}	models.User
+//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/authenticate/user/signup [post]
 func (a *application) RegisterUserHandler(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -104,6 +118,23 @@ func (a *application) RegisterUserHandler(c *gin.Context) {
 	a.Success(c, "Created User Successfully", User, http.StatusOK)
 
 }
+
+// UserActivation godoc
+//
+//	@Summary		Activates a new user
+//	@Description	Activates a new user account via the token sent to their email
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			token	path		string				true	"Activation token"
+//
+//	@Success		200		{object}	map[string]string	"User activated successfully"
+//
+//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/authenticate/user/activate/{token} [put]
 func (a *application) ActivateUserHandler(c *gin.Context) {
 
 	ctx := c.Request.Context()
@@ -112,10 +143,27 @@ func (a *application) ActivateUserHandler(c *gin.Context) {
 	log.Print(token)
 	if err := a.store.Users.Activate(ctx, token); err != nil {
 		a.BadRequest(c, "token error", err)
+		return
 	}
 	a.Success(c, "User activated Successfully", "User activated Successfully", http.StatusOK)
 }
 
+// User Login godoc
+//
+//	@Summary		Logs in a user and returns a JWT token
+//	@Description	Logs in a user with username and password, returning a JWT token for authenticated requests
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		LoginUserPayload	true	"User Login Payload"
+//
+//	@Success		200		{object}	map[string]string	"User activated successfully"
+//
+//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/authenticate/user/signin [post]
 func (a *application) LoginUserHandler(c *gin.Context) {
 
 	ctx := c.Request.Context()

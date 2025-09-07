@@ -8,6 +8,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetUserFeed godoc
+//
+//	@Summary		Fetches a user feed
+//	@Description	Fetches a user feed based on the users they follow
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			limit	query		int		false	"Number of items to return"
+//	@Param			offset	query		int		false	"Offset for pagination"
+//	@Param			sort	query		string	false	"Sort order (asc/desc)"
+//	@Param			search	query		string	false	"Search term"
+//	@Success		200		{array}		models.UserFeed
+//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/user/feed [get]
 func (a *application) GetUserFeedHandler(c *gin.Context) {
 
 	pq := store.PaginatedQuery{

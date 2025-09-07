@@ -40,14 +40,13 @@ func (j *JWTAuthenticator) ValidateToken(token string) (*jwt.Token, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method %v", t.Header["alg"])
 		}
-		return []byte(j.secret),nil;
+		return []byte(j.secret), nil
 
 	},
-	jwt.WithExpirationRequired(),
-	jwt.WithAudience(j.audience),
-	jwt.WithIssuer(j.issuer),
-	jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Name}),
-
-)
+		jwt.WithExpirationRequired(),
+		jwt.WithAudience(j.audience),
+		jwt.WithIssuer(j.issuer),
+		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Name}),
+	)
 
 }

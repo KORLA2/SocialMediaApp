@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:latest
+    container_name: "social"
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
@@ -10,5 +11,24 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./cmd/database:/docker-entrypoint-initdb.d
+
+  redis:
+    image: redis:8.2.1-alpine
+    container_name: redis-container
+    ports:
+      - "6379:6379"
+    restart: unless-stopped  
+    command: redis-server --save 60 1 --loglevel warning
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    hostname: redis-commander
+    environment:
+     - REDIS_HOST=redis
+    ports:
+    - "127.0.0.1:8081:8081"
+    depends_on:
+     - redis 
+    restart: unless-stopped
+      
 volumes:
   db_data:

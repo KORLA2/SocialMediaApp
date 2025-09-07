@@ -25,6 +25,6 @@ func (r *RoleStore) GetRoleByName(ctx context.Context, minimumRequiredRole strin
 		); err != nil {
 		return nil, err
 	}
-	return role, nil;
+	return role, nil
 
 }
