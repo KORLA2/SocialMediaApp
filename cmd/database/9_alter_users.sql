@@ -1,7 +1,6 @@
-alter table users add colum role_id bigint references roles(id)
+alter table users add column role_id bigint not null references roles(id);
 
 Update users set role_id=(
-    select if from roles where name="user"
-)
+    select id from roles where name='user'
+);
 
-alter table users alter column role_id set not null

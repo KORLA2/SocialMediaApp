@@ -8,7 +8,7 @@ import (
 //
 //	@Summary		Health Check
 //	@Description	Checks the health status of the API
-//	@Tags			users
+//	@Tags			Health Check
 //	@Accept			json
 //	@Produce		json
 //	@Success		200	{string}	"Healthy"

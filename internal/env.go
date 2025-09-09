@@ -1,9 +1,24 @@
 package env
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 )
+
+func GetDBString(key, fallback string) string {
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	user := os.Getenv("DB_USER")
+	pass := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
+
+	if host == "" || port == "" || user == "" || pass == "" || dbname == "" {
+		return fallback
+	}
+
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, pass, host, port, dbname)
+}
 
 func GetString(key, fallback string) string {
 

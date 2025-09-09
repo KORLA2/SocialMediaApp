@@ -29,7 +29,7 @@ type UpdatePostPayload struct {
 //
 //	@Summary		Creates a new post
 //	@Description	Creates a valid user post with title, content, and tags
-//	@Tags			users
+//	@Tags			Posts
 //	@Accept			json
 //	@Produce		json
 //	@Param			payload	body		PostPayload	true	"Post data"
@@ -74,7 +74,7 @@ func (a *application) CreatePostHandler(c *gin.Context) {
 //
 //	@Summary		Fetches a user post
 //	@Description	Fetches any valid and verified  user's post  by ID
-//	@Tags			users
+//	@Tags			Posts
 //	@Accept			json
 //	@Produce		json
 //	@Param			postID	path		int	true	"postID"
@@ -108,7 +108,7 @@ func (a *application) GetPostHandler(c *gin.Context) {
 //
 //	@Summary		Deletes a user post
 //	@Description	Deletes a user's post by ID Admin can delete any post and user can delete his own post.
-//	@Tags			users
+//	@Tags			Posts
 //	@Accept			json
 //	@Produce		json
 //	@Param			postID	path		int	true	"postID"
@@ -136,7 +136,7 @@ func (a *application) DeletePostHandler(c *gin.Context) {
 //
 //	@Summary		Updates a user post
 //	@Description	Updates user's post  by ID Admin and moderator can update any user post, user can update his own post
-//	@Tags			users
+//	@Tags			Posts
 //	@Accept			json
 //	@Produce		json
 //	@Param			postID	path		int					true	"postID"

@@ -8,20 +8,6 @@ definitions:
     required:
     - content
     type: object
-  main.LoginUserPayload:
-    properties:
-      password:
-        maxLength: 100
-        minLength: 4
-        type: string
-      username:
-        maxLength: 100
-        minLength: 3
-        type: string
-    required:
-    - password
-    - username
-    type: object
   main.PostPayload:
     properties:
       content:
@@ -46,24 +32,6 @@ definitions:
       title:
         maxLength: 100
         type: string
-    type: object
-  main.UserPayload:
-    properties:
-      email:
-        type: string
-      level:
-        maximum: 3
-        minimum: 1
-        type: integer
-      password:
-        type: string
-      username:
-        type: string
-    required:
-    - email
-    - level
-    - password
-    - username
     type: object
   models.Comment:
     properties:
@@ -171,108 +139,13 @@ info:
 paths:
   /authenticate/user/activate/{token}:
     put:
-      consumes:
-      - application/json
-      description: Activates a new user account via the token sent to their email
-      parameters:
-      - description: Activation token
-        in: path
-        name: token
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: User activated successfully
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema: {}
-        "404":
-          description: Not Found
-          schema: {}
-        "500":
-          description: Internal Server Error
-          schema: {}
-      security:
-      - ApiKeyAuth: []
-      summary: Activates a new user
-      tags:
-      - users
+      responses: {}
   /authenticate/user/signin:
     post:
-      consumes:
-      - application/json
-      description: Logs in a user with username and password, returning a JWT token
-        for authenticated requests
-      parameters:
-      - description: User Login Payload
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/main.LoginUserPayload'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: User activated successfully
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema: {}
-        "404":
-          description: Not Found
-          schema: {}
-        "500":
-          description: Internal Server Error
-          schema: {}
-      security:
-      - ApiKeyAuth: []
-      summary: Logs in a user and returns a JWT token
-      tags:
-      - users
+      responses: {}
   /authenticate/user/signup:
     post:
-      consumes:
-      - application/json
-      description: 'Registers a new user with email, username, password, and role
-        level: 1 for user 2 for moderator 3 for admin'
-      parameters:
-      - description: User Signup
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/main.UserPayload'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.User'
-        "400":
-          description: Bad Request
-          schema: {}
-        "404":
-          description: Not Found
-          schema: {}
-        "500":
-          description: Internal Server Error
-          schema: {}
-      security:
-      - ApiKeyAuth: []
-      summary: Registers a new user
-      tags:
-      - users
+      responses: {}
   /post/{postID}/comments:
     post:
       consumes:
@@ -310,7 +183,7 @@ paths:
       - ApiKeyAuth: []
       summary: Creates a new comment on a post
       tags:
-      - users
+      - Posts
   /posts:
     post:
       consumes:
@@ -343,7 +216,7 @@ paths:
       - ApiKeyAuth: []
       summary: Creates a new post
       tags:
-      - users
+      - Posts
   /posts/{postID}:
     delete:
       consumes:
@@ -376,7 +249,7 @@ paths:
       - ApiKeyAuth: []
       summary: Deletes a user post
       tags:
-      - users
+      - Posts
     get:
       consumes:
       - application/json
@@ -407,7 +280,7 @@ paths:
       - ApiKeyAuth: []
       summary: Fetches a user post
       tags:
-      - users
+      - Posts
     patch:
       consumes:
       - application/json
@@ -444,6 +317,38 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Updates a user post
+      tags:
+      - Posts
+  /user/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Fetches a user profile by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Fetches a user profile
       tags:
       - users
   /user/{id}/follow:
@@ -554,39 +459,7 @@ paths:
       - ApiKeyAuth: []
       summary: Fetches a user feed
       tags:
-      - users
-  /users/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Fetches a user profile by ID
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.User'
-        "400":
-          description: Bad Request
-          schema: {}
-        "404":
-          description: Not Found
-          schema: {}
-        "500":
-          description: Internal Server Error
-          schema: {}
-      security:
-      - ApiKeyAuth: []
-      summary: Fetches a user profile
-      tags:
-      - users
+      - Feed
 securityDefinitions:
   ApiKeyAuth:
     description: Type "Bearer <your JWT token>" to authenticate

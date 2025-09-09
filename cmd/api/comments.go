@@ -16,7 +16,7 @@ type CommentPayload struct {
 //
 //	@Summary		Creates a new comment on a post
 //	@Description	Creates a valid comment on a post with content
-//	@Tags			users
+//	@Tags			Posts
 //	@Accept			json
 //	@Produce		json
 //	@Param			postID	path		int				true	"Create comment for post ID"

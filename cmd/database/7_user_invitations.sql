@@ -1,6 +1,6 @@
-create table user_invitations(
+create table if not exists user_invitations (
 
-token  bytea primary key 
-user_id bigint  references users(id)
-expiry timestamp(0) with time zone NOT NULL,
-)
+token  bytea primary key, 
+user_id bigint  references users(id),
+expiry timestamp(0) with time zone NOT NULL
+);

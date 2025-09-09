@@ -1,34 +1,36 @@
 services:
+  
   db:
     image: postgres:latest
-    container_name: "social"
+    container_name: "social_db"
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: social
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data
       - ./cmd/database:/docker-entrypoint-initdb.d
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d social"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  redis:
-    image: redis:8.2.1-alpine
-    container_name: redis-container
+  socialapp:
+    build: .
+    container_name: "social_app"
     ports:
-      - "6379:6379"
-    restart: unless-stopped  
-    command: redis-server --save 60 1 --loglevel warning
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    hostname: redis-commander
+     - "8008:8008"
     environment:
-     - REDIS_HOST=redis
-    ports:
-    - "127.0.0.1:8081:8081"
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=user
+      - DB_PASSWORD=password
+      - DB_NAME=social
     depends_on:
-     - redis 
-    restart: unless-stopped
+      - db 
       
 volumes:
   db_data:

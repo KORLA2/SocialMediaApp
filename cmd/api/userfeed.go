@@ -12,7 +12,7 @@ import (
 //
 //	@Summary		Fetches a user feed
 //	@Description	Fetches a user feed based on the users they follow
-//	@Tags			users
+//	@Tags			Feed
 //	@Accept			json
 //	@Produce		json
 //	@Param			limit	query		int		false	"Number of items to return"

@@ -38,7 +38,7 @@ func main() {
 			FromEmail: env.GetString("FROM_MAIL", "palclub@io.com"),
 		},
 		db: dbConfig{
-			addr:         env.GetString("DB_ADDR", "postgres://user:password@localhost:5433/social?sslmode=disable"),
+			addr:         env.GetDBString("DB_ADDR", "postgres://user:password@localhost:5433/social?sslmode=disable"),
 			maxOpenConns: env.GetInt("MAX_CONNS", 25),
 			maxIdleConns: env.GetInt("MAX_IDLE_CONNS", 25),
 			maxIdleTime:  env.GetString("MAX_IDLE_TIME", (20 * time.Minute).String()),

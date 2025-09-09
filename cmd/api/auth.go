@@ -53,7 +53,7 @@ func ValidateUserPassword(payloadpassword, userpassword string) bool {
 //
 //	@Summary		Registers a new user
 //	@Description	Registers a new user with email, username, password, and role level: 1 for user 2 for moderator 3 for admin
-//	@Tags			users
+//	@Tags			Authentication
 //	@Accept			json
 //	@Produce		json
 //	@Param			payload	body		UserPayload	true	"User Signup"
@@ -61,8 +61,8 @@ func ValidateUserPassword(payloadpassword, userpassword string) bool {
 //	@Failure		400		{object}	error
 //	@Failure		404		{object}	error
 //	@Failure		500		{object}	error
-//	@Security		ApiKeyAuth
-//	@Router			/authenticate/user/signup [post]
+
+// @Router	/authenticate/user/signup [post]
 func (a *application) RegisterUserHandler(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -123,7 +123,7 @@ func (a *application) RegisterUserHandler(c *gin.Context) {
 //
 //	@Summary		Activates a new user
 //	@Description	Activates a new user account via the token sent to their email
-//	@Tags			users
+//	@Tags			Authentication
 //	@Accept			json
 //	@Produce		json
 //	@Param			token	path		string				true	"Activation token"
@@ -133,8 +133,8 @@ func (a *application) RegisterUserHandler(c *gin.Context) {
 //	@Failure		400		{object}	error
 //	@Failure		404		{object}	error
 //	@Failure		500		{object}	error
-//	@Security		ApiKeyAuth
-//	@Router			/authenticate/user/activate/{token} [put]
+
+// @Router	/authenticate/user/activate/{token} [put]
 func (a *application) ActivateUserHandler(c *gin.Context) {
 
 	ctx := c.Request.Context()
@@ -152,7 +152,7 @@ func (a *application) ActivateUserHandler(c *gin.Context) {
 //
 //	@Summary		Logs in a user and returns a JWT token
 //	@Description	Logs in a user with username and password, returning a JWT token for authenticated requests
-//	@Tags			users
+//	@Tags			Authentication
 //	@Accept			json
 //	@Produce		json
 //	@Param			payload	body		LoginUserPayload	true	"User Login Payload"
@@ -162,8 +162,8 @@ func (a *application) ActivateUserHandler(c *gin.Context) {
 //	@Failure		400		{object}	error
 //	@Failure		404		{object}	error
 //	@Failure		500		{object}	error
-//	@Security		ApiKeyAuth
-//	@Router			/authenticate/user/signin [post]
+
+// @Router	/authenticate/user/signin [post]
 func (a *application) LoginUserHandler(c *gin.Context) {
 
 	ctx := c.Request.Context()
